@@ -11,9 +11,12 @@
 // Your WiFi credentials.
 // Set password to "" for open networks.
 char ssid[] = "Creche Rainha da Paz";
-char pass[] = "*********";
+char pass[] = "sandros4nt0";
 
 BlynkTimer timer;
+
+// Adicione esta linha para definir a última vez que a mangueira foi substituída
+unsigned long lastReplacementTime = 0;
 
 // This function is called every time the Virtual Pin 0 state changes
 BLYNK_WRITE(V0)
@@ -71,6 +74,9 @@ void setup()
 
   // Setup a function to be called every second
   timer.setInterval(1000L, myTimerEvent);
+
+  // Inicialize a última vez que a mangueira foi substituída com o tempo atual
+  lastReplacementTime = millis();
 }
 
 void loop()
@@ -79,6 +85,15 @@ void loop()
   if (WiFi.status() == WL_CONNECTED) {
     // Aqui você pode enviar comandos pelo monitor serial
     Serial.println("Conectado.");
+  }
+
+  // Verifique se passaram 5 anos desde a última substituição da mangueira
+  if (millis() - lastReplacementTime >= 5 * 365 * 24 * 60 * 60 * 1000UL) {
+    // Emita um aviso de substituição da mangueira
+    Serial.println("Aviso: Substitua a mangueira, pois passaram 5 anos desde a última substituição.");
+
+    // Atualize o tempo da última substituição para o atual
+    lastReplacementTime = millis();
   }
 
   // Leitura do sensor MQ-2
@@ -90,10 +105,10 @@ void loop()
     digitalWrite(buzzerPin, HIGH);
     digitalWrite(ledPin, HIGH);
 
-    // Monitor onitor serial
+    // Exiba uma mensagem no monitor serial
     Serial.println("Vazamento de gás detectado!");
 
-    //Notificação Blynk
+    // Envie a notificação Blynk
     Blynk.logEvent("EVENTO");
 
     // Defina a flag de detecção de gás como verdadeira
@@ -113,4 +128,3 @@ void loop()
   Blynk.run();
   timer.run();
 }
-
